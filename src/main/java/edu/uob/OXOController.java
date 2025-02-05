@@ -1,9 +1,14 @@
+
+// 用于控制游戏逻辑,改变和操纵 OXOModel 中的游戏状态
+
 package edu.uob;
+import edu.uob.OXOModel;
+import edu.uob.OXOMoveException;
+import edu.uob.OXOPlayer;
 
 import java.io.Serial;
 import java.io.Serializable;
 
-// 用于控制游戏逻辑,改变和操纵 OXOModel 中的游戏状态
 public class OXOController implements Serializable {
     @Serial private static final long serialVersionUID = 1;
     OXOModel gameModel;
