@@ -24,12 +24,18 @@ public class OXOModel implements Serializable {
     private ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
     private OXOPlayer[] players; // 存储玩家(标准2个)
     private int currentPlayerNumber; // 当前玩家
-    private OXOPlayer winner;
+    private OXOPlayer winner; // 设置赢家, 会自动在屏幕上显示(在GUI相关处已写好)
     private boolean gameDrawn; // 记录是否平局(棋盘填满但没有赢家)
     private int winThreshold; // 胜利所需连续单元格(标准3个)
 
     private int numberOfRows;
     private int numberOfColumns;
+    private int maxNumberOfRows = 9;
+    private int maxNumberOfColumns = 9;
+    private int minNumberOfRows = 3;
+    private int minNumberOfColumns = 3;
+
+    private boolean gameOver; // 用于表示游戏是否结束
 
     /* =================== 构造函数: 构造棋盘和玩家 ================== */
     public OXOModel(int numberOfRows, int numberOfColumns, int winThresh) {
@@ -42,6 +48,7 @@ public class OXOModel implements Serializable {
             cells.add(null);
         }
         this.players = new OXOPlayer[2];
+        gameOver = false;
     }
 
     /* ======================== 添加玩家数量 ====================== */
@@ -56,7 +63,7 @@ public class OXOModel implements Serializable {
 
     /* =================== 添加/删除板的长度和高度 ==================*/
     public void addColumn(){
-        if(numberOfColumns == 9){ return; }
+        if(gameOver || numberOfColumns == maxNumberOfColumns){ return; }
         // 方法1: 从第一行开始添加, 每隔[列数+1]个添加一次
         for (int i = numberOfColumns-1; i < cells.size(); i += (numberOfColumns+1)) {
             cells.add(i,null);
@@ -70,7 +77,7 @@ public class OXOModel implements Serializable {
         numberOfColumns++;
     }
     public void addRow(){ // 在最后添加新的一行
-        if(numberOfRows == 9){ return; }
+        if(gameOver || numberOfRows == maxNumberOfRows){ return; }
         // 不需要计算索引, 直接使用一个参数的add方法, 在末尾增加列数个元素
         for (int i = 0; i < numberOfColumns; i++) {
             cells.add(null); // 一共添加[列的数量]次
@@ -78,7 +85,7 @@ public class OXOModel implements Serializable {
         numberOfRows++;
     }
     public void removeColumn(){
-        if(numberOfColumns == 3){ return; }
+        if(gameOver || numberOfColumns == minNumberOfColumns){ return; }
         // 从最后一个开始删除, 每隔[列数]个元素就删除一次
         // 从后往前删除, 确保前面即将删除的元素的索引不变
         for(int i = cells.size()-1; i >= numberOfColumns -1; i -= numberOfColumns){
@@ -87,7 +94,7 @@ public class OXOModel implements Serializable {
         numberOfColumns--;
     }
     public void removeRow(){ // 删除最后一行
-        if(numberOfRows == 3){ return; }
+        if(gameOver || numberOfRows == minNumberOfRows){ return; }
         // 计算需要删除的所有范围, 从最后一个开始往前删除
         int start = getIndex(numberOfRows - 1, 0);
         int end = getIndex(numberOfRows - 1, numberOfColumns - 1);
@@ -143,10 +150,17 @@ public class OXOModel implements Serializable {
     public boolean isGameDrawn() { // 就是 get方法 (判断是否是平局? 返回T/F)
         return gameDrawn;
     }
+    // 设置和获取游戏状态是否结束
+    public void setGameOver(boolean flag) {
+        this.gameOver = flag;
+    }
+    public boolean isGameOver() {
+        return gameOver;
+    }
 
     /* ======================= 辅助方法 ======================*/
     // 行列 -> 在集合中的索引
-    private int getIndex(int rowNumber, int colNumber) {
+    public int getIndex(int rowNumber, int colNumber) {
         return rowNumber * numberOfColumns + colNumber;
     }
 }
