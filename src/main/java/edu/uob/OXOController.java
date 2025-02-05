@@ -59,6 +59,19 @@ public class OXOController implements Serializable {
     public void increaseWinThreshold() {}
     public void decreaseWinThreshold() {}
 
-    // 让用户可以使用 ESC 键来重置游戏(调用Model类方法来清除板)
-    public void reset() {}
+    // 重置游戏(Model棋盘恢复为初始状态)
+    public void reset() {
+        // 1. 清空棋盘: 将格子设为空
+        for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
+            for (int j = 0; j < gameModel.getNumberOfColumns(); j++) {
+                gameModel.setCellOwner(i, j, null);
+            }
+        }
+        // 2. 设置当前玩家为第一个玩家
+        gameModel.setCurrentPlayerNumber(0);
+        // 3. 清除赢家
+        gameModel.setWinner(null);
+        // 4. 清除平局状态
+        gameModel.setGameDrawn(false);
+    }
 }
