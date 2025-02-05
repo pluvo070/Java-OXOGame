@@ -24,8 +24,8 @@ public class OXOModel implements Serializable {
     private ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
     private OXOPlayer[] players; // 存储玩家(标准2个)
     private int currentPlayerNumber; // 当前玩家
-    private OXOPlayer winner; // 设置赢家, 会自动在屏幕上显示(在GUI相关处已写好)
-    private boolean gameDrawn; // 记录是否平局(棋盘填满但没有赢家)
+    private OXOPlayer winner; // 设置赢家, 会自动在屏幕上显示赢家(在GUI相关处已写好)
+    private boolean gameDrawn; // 记录是否平局, 会自动在屏幕上显示平局(在GUI相关处已写好)
     private int winThreshold; // 胜利所需连续单元格(标准3个)
 
     private int numberOfRows;
@@ -62,6 +62,8 @@ public class OXOModel implements Serializable {
     }
 
     /* =================== 添加/删除板的长度和高度 ==================*/
+
+    /*  !!!!!! 还没实现: 有内容的行列不可以被删除 !!!!!! */
     public void addColumn(){
         if(gameOver || numberOfColumns == maxNumberOfColumns){ return; }
         // 方法1: 从第一行开始添加, 每隔[列数+1]个添加一次
