@@ -6,6 +6,7 @@ import java.awt.Graphics;
 import java.io.Serial;
 import javax.swing.JPanel;
 
+// 游戏渲染逻辑
 public class OXOView extends JPanel {
     @Serial private static final long serialVersionUID = 1;
     private static int MARGIN = 50;
