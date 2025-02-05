@@ -47,41 +47,27 @@ public class OXOModel implements Serializable {
         }
     }
 
+    // 根据玩家编号获取玩家
     public OXOPlayer getPlayerByNumber(int number) {
         return players[number];
     }
 
-    public OXOPlayer getWinner() {
-        return winner;
-    }
+    // 设置/获取赢家
+    public OXOPlayer getWinner() {return winner;}
+    public void setWinner(OXOPlayer player) {winner = player;}
 
-    public void setWinner(OXOPlayer player) {
-        winner = player;
-    }
+    // 设置/获取当前玩家序号
+    public int getCurrentPlayerNumber() {return currentPlayerNumber;}
+    public void setCurrentPlayerNumber(int playerNumber) {currentPlayerNumber = playerNumber;}
 
-    public int getCurrentPlayerNumber() {
-        return currentPlayerNumber;
-    }
+    // 获得棋盘大小
+    public int getNumberOfRows() {return cells.length;}
+    public int getNumberOfColumns() {return cells[0].length;}
 
-    public void setCurrentPlayerNumber(int playerNumber) {
-        currentPlayerNumber = playerNumber;
-    }
+    // 设置/获取某个格子的拥有者
+    public OXOPlayer getCellOwner(int rowNumber, int colNumber) {return cells[rowNumber][colNumber];}
+    public void setCellOwner(int rowNumber, int colNumber, OXOPlayer player) {cells[rowNumber][colNumber] = player;}
 
-    public int getNumberOfRows() {
-        return cells.length;
-    }
-
-    public int getNumberOfColumns() {
-        return cells[0].length;
-    }
-
-    public OXOPlayer getCellOwner(int rowNumber, int colNumber) {
-        return cells[rowNumber][colNumber];
-    }
-
-    public void setCellOwner(int rowNumber, int colNumber, OXOPlayer player) {
-        cells[rowNumber][colNumber] = player;
-    }
 
     public void setWinThreshold(int winThresh) {
         winThreshold = winThresh;
