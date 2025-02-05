@@ -2,6 +2,7 @@ package edu.uob;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 // 用于维持游戏状态
 public class OXOModel implements Serializable {
@@ -17,27 +18,33 @@ public class OXOModel implements Serializable {
     *   b |   |   |   |
     *   c |   |   |   |    */
 
-    // 成员变量
-    private OXOPlayer[][] cells; // 存储网格
+    /* ====================== 成员变量 ===================== */
+
+    //private OXOPlayer[][] cells; // 存储网格, 数组实现
+    private ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
     private OXOPlayer[] players; // 存储玩家(标准2个)
     private int currentPlayerNumber; // 当前玩家
     private OXOPlayer winner;
     private boolean gameDrawn; // 记录是否平局(棋盘填满但没有赢家)
     private int winThreshold; // 胜利所需连续单元格(标准3个)
 
-    // 构造棋盘和玩家
+    private int numberOfRows;
+    private int numberOfColumns;
+
+    /* =================== 构造函数: 构造棋盘和玩家 ================== */
     public OXOModel(int numberOfRows, int numberOfColumns, int winThresh) {
-        winThreshold = winThresh;
-        cells = new OXOPlayer[numberOfRows][numberOfColumns];
-        players = new OXOPlayer[2];
+        this.numberOfRows = numberOfRows;
+        this.numberOfColumns = numberOfColumns;
+        this.winThreshold = winThresh;
+        this.cells = new ArrayList<>();
+        // 初始化集合大小, 添加空对象
+        for (int i = 0; i < numberOfRows * numberOfColumns; i++) {
+            cells.add(null);
+        }
+        this.players = new OXOPlayer[2];
     }
 
-    // 获取玩家个数
-    public int getNumberOfPlayers() {
-        return players.length;
-    }
-
-    // 添加玩家填满玩家数组
+    /* ======================== 添加玩家数量 ====================== */
     public void addPlayer(OXOPlayer player) {
         for (int i = 0; i < players.length; i++) {
             if (players[i] == null) {
@@ -45,6 +52,55 @@ public class OXOModel implements Serializable {
                 return;
             }
         }
+    }
+
+    /* =================== 添加/删除板的长度和高度 ==================*/
+    public void addColumn(){
+        if(numberOfColumns == 9){ return; }
+        // 方法1: 从第一行开始添加, 每隔[列数+1]个添加一次
+        for (int i = numberOfColumns-1; i < cells.size(); i += (numberOfColumns+1)) {
+            cells.add(i,null);
+        }
+        /*
+        // 方法2: i遍历行数, 每一行末尾+1空位
+        for (int i = 0; i < numberOfRows; i++){
+            int index = getIndex(i, numberOfColumns); // 在当前行的末尾的索引
+            cells.add(index, null);
+        }*/
+        numberOfColumns++;
+    }
+    public void addRow(){ // 在最后添加新的一行
+        if(numberOfRows == 9){ return; }
+        // 不需要计算索引, 直接使用一个参数的add方法, 在末尾增加列数个元素
+        for (int i = 0; i < numberOfColumns; i++) {
+            cells.add(null); // 一共添加[列的数量]次
+        }
+        numberOfRows++;
+    }
+    public void removeColumn(){
+        if(numberOfColumns == 3){ return; }
+        // 从最后一个开始删除, 每隔[列数]个元素就删除一次
+        // 从后往前删除, 确保前面即将删除的元素的索引不变
+        for(int i = cells.size()-1; i >= numberOfColumns -1; i -= numberOfColumns){
+            cells.remove(i);
+        }
+        numberOfColumns--;
+    }
+    public void removeRow(){ // 删除最后一行
+        if(numberOfRows == 3){ return; }
+        // 计算需要删除的所有范围, 从最后一个开始往前删除
+        int start = getIndex(numberOfRows - 1, 0);
+        int end = getIndex(numberOfRows - 1, numberOfColumns - 1);
+        for (int i = end; i >= start; i--) {
+            cells.remove(i);
+        }
+        numberOfRows--;
+    }
+
+    /* =================== Get / Set 方法 ================== */
+    // 获取玩家个数
+    public int getNumberOfPlayers() {
+        return players.length;
     }
 
     // 根据玩家编号获取玩家
@@ -61,28 +117,36 @@ public class OXOModel implements Serializable {
     public void setCurrentPlayerNumber(int playerNumber) {currentPlayerNumber = playerNumber;}
 
     // 获得棋盘大小
-    public int getNumberOfRows() {return cells.length;}
-    public int getNumberOfColumns() {return cells[0].length;}
+    public int getNumberOfRows() {return this.numberOfRows;}
+    public int getNumberOfColumns() {return this.numberOfColumns;}
 
-    // 设置/获取某个格子的拥有者
-    public OXOPlayer getCellOwner(int rowNumber, int colNumber) {return cells[rowNumber][colNumber];}
-    public void setCellOwner(int rowNumber, int colNumber, OXOPlayer player) {cells[rowNumber][colNumber] = player;}
-
+    // 设置/获取某个格子的拥有者(格子里填的是什么字符)
+    public OXOPlayer getCellOwner(int rowNumber, int colNumber) {
+        int index = getIndex(rowNumber, colNumber);
+        return cells.get(index); // get是集合的方法: 通过索引获取元素
+    }
+    public void setCellOwner(int rowNumber, int colNumber, OXOPlayer player) {
+        int index = getIndex(rowNumber, colNumber);
+        cells.set(index, player); // set是集合的方法: 通过索引设置元素
+    }
 
     public void setWinThreshold(int winThresh) {
         winThreshold = winThresh;
     }
-
     public int getWinThreshold() {
         return winThreshold;
     }
 
-    public void setGameDrawn(boolean isDrawn) {
+    public void setGameDrawn(boolean isDrawn) { // 设置为平局
         gameDrawn = isDrawn;
     }
-
-    public boolean isGameDrawn() {
+    public boolean isGameDrawn() { // 就是 get方法 (判断是否是平局? 返回T/F)
         return gameDrawn;
     }
 
+    /* ======================= 辅助方法 ======================*/
+    // 行列 -> 在集合中的索引
+    private int getIndex(int rowNumber, int colNumber) {
+        return rowNumber * numberOfColumns + colNumber;
+    }
 }

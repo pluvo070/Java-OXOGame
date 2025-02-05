@@ -16,30 +16,10 @@ public class OXOController implements Serializable {
     // 先添加哪个玩家, 那个玩家就先开始游戏
     // 不在这里检查输入是否合法(下周在MoveException里做)
     public void handleIncomingCommand(String command) throws OXOMoveException {
-        int i = 0;
-        int j = 0;
-        switch(command.charAt(0)){
-            case 'a':
-                i = 0;
-                break;
-            case 'b':
-                i = 1;
-                break;
-            case 'c':
-                i = 2;
-                break;
-        }
-        switch(command.charAt(1)){
-            case '1':
-                j = 0;
-                break;
-            case '2':
-                j = 1;
-                break;
-            case '3':
-                j = 2;
-                break;
-        }
+        char row = command.charAt(0);
+        char col = command.charAt(1);
+        int i = row - 'a';
+        int j = col - '1';
         // 检测当前棋盘方格是否已经被占用, 放在异常处理 MoveException 里做
         //if(gameModel.getCellOwner(i, j) == null){
             int currentPlayerNumber = gameModel.getCurrentPlayerNumber();
@@ -52,14 +32,23 @@ public class OXOController implements Serializable {
         //}
     }
 
-    public void addRow() {}
-    public void removeRow() {}
-    public void addColumn() {}
-    public void removeColumn() {}
+    // 根据用户的鼠标点击(这部分在OXOGame里)增删行列
+    public void addRow() {
+        gameModel.addRow();
+    }
+    public void removeRow() {
+        gameModel.removeRow();
+    }
+    public void addColumn() {
+        gameModel.addColumn();
+    }
+    public void removeColumn() {
+        gameModel.removeColumn();
+    }
     public void increaseWinThreshold() {}
     public void decreaseWinThreshold() {}
 
-    // 重置游戏(Model棋盘恢复为初始状态)
+    // 按下ESC(这部分在OXOGame里)->重置游戏(让Model棋盘恢复为初始状态)
     public void reset() {
         // 1. 清空棋盘: 将格子设为空
         for (int i = 0; i < gameModel.getNumberOfRows(); i++) {

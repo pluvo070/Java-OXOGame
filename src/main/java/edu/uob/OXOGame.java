@@ -82,9 +82,9 @@ public final class OXOGame extends Frame implements WindowListener, ActionListen
         }
     }
 
-    /* 监听鼠标事件: 左上角区域（X < 35 或 Y < 35） 允许调整棋盘大小：
-       1. 右键点击（BUTTON3_DOWN_MASK）：删除行/列
-       2. 左键点击：增加行/列      */
+    /* 监听鼠标事件:
+       左键点击增加, 右键点击减少
+       点击行号增删行, 点击列号增删列, 点击左上区域同时增删行列 */
     public void mousePressed(MouseEvent event) {
         if (event.getX() < 35) {
             if (event.isPopupTrigger()) controller.removeRow();
