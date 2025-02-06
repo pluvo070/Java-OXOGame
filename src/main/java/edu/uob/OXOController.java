@@ -21,12 +21,30 @@ public class OXOController implements Serializable {
        先添加哪个玩家, 那个玩家就先开始游戏
        不在这里检查输入是否合法(下周在MoveException里做) */
     public void handleIncomingCommand(String command) throws OXOMoveException {
+        // 异常处理1: 检测传入字符串长度是否是两位
+        if(command.length() != 2){
+            throw new OXOMoveException.InvalidIdentifierLengthException(command.length());
+        }
         if(gameModel.isGameOver()){return;} // 如果游戏结束,不再接受指令
         char row = command.charAt(0);
         char col = command.charAt(1);
+        // 异常处理2: 检测传入字符串的两个字符值是否正常(第一个是字母, 第二个是数字)
+        if(!Character.isLetter(row)){ // 这是 Character 类的静态方法, 用于判断单个字符是否是字母
+            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.ROW, row);
+        } else if(!Character.isDigit(col)){ // 这是 Character 类的静态方法, 用于判断单个字符是否是数字
+            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.COLUMN, col);
+        }
+        // 异常处理3: 检测两个字符是否在行列的范围内
+        int width = gameModel.getNumberOfRows();
+        int height = gameModel.getNumberOfColumns();
+        if(row < 'a'||row > width + 'a' - 1){
+            throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
+        } else if(col < '1'||col > height + '1' - 1){
+            throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.COLUMN, col);
+        }
         int i = row - 'a';
         int j = col - '1';
-        // 检测当前棋盘方格是否已经被占用, 放在异常处理 MoveException 里做
+        // 检测当前棋盘方格是否已经被占用
         if(gameModel.getCellOwner(i, j) == null){
             int currentPlayerNumber = gameModel.getCurrentPlayerNumber();
             OXOPlayer currentPlayer = gameModel.getPlayerByNumber(currentPlayerNumber);
@@ -34,7 +52,8 @@ public class OXOController implements Serializable {
             int playerArrLength = gameModel.getNumberOfPlayers();
             gameModel.setCurrentPlayerNumber((currentPlayerNumber + 1) % playerArrLength);
         }else{
-            throw new OXOMoveException("Cell already taken");
+            // 异常处理3: 当前格子被占用
+            throw new OXOMoveException.CellAlreadyTakenException(i, j);
         }
         // 检查是否游戏胜利
         if (checkWin()) {
