@@ -66,8 +66,10 @@ public class OXOModel implements Serializable {
         if(gameOver || numberOfColumns == maxNumberOfColumns){ return; }
         /* 方法1: 从第一行开始添加, 每隔[列数+1]个添加一次
         for (int i = numberOfColumns-1; i < cells.size(); i += (numberOfColumns+1)) {
-            cells.add(i,null);
-        } */
+            cells.add(i+1, null);
+        }*//* 注意: 这里 i+1 是因为 [add 指定索引的重载函数] 会在当前索引处插入元素,
+                不 +1 相当于在最后一列之前插入新一列
+                而 [add不指定索引的重载函数] 直接在末尾追加, 这两者不一样 */
 
         // 方法2: 遍历行, 计算每一行末尾的索引, +1空位
         for (int i = 0; i < numberOfRows; i++){
