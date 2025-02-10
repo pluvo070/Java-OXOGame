@@ -14,7 +14,8 @@ public class OXOController implements Serializable {
         gameModel = model;
     }
 
-    /* 处理用户的输入, 如 "a1" 则在棋盘左上角添加对应用户的图形(大小写不敏感)
+    /* =============== 处理用户的输入 ============= */
+    /* 如 "a1" 则在棋盘左上角添加对应用户的图形(大小写不敏感)
        先添加哪个玩家, 那个玩家就先开始游戏 */
     public void handleIncomingCommand(String command) throws OXOMoveException {
         validateCommandLength(command); // 异常处理1: 检测传入字符串长度是否是两位
@@ -99,6 +100,7 @@ public class OXOController implements Serializable {
         }
     }
 
+    /* =============== 交互式操控棋盘 ============= */
 
     // (根据用户的鼠标点击)增删行列
     public void addRow() {
@@ -211,6 +213,16 @@ public class OXOController implements Serializable {
         return false;
     }
 
+    /* =============== 非交互式操控棋盘 ============= */
+    /* 增加和减少玩家的数量, 不通过交互操控, 只用于在测试文件中进行测试以下函数是否正确 */
+    public void addPlayer(OXOPlayer player) {
+        gameModel.addOnePlayer(player);
+    }
+    public void removePlayer(OXOPlayer player) {
+        gameModel.removeOnePlayer(player);
+    }
+
+    /* =============== 辅助函数 ==============*/
     // 胜利检测的辅助函数
     // 递归调用: 其中i代表行方向的增量, j代表列方向的增量
     private boolean checkLine(int row, int col, int count, int winShold, OXOPlayer playerInThisBox, int i, int j) {

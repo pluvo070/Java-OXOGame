@@ -22,7 +22,10 @@ public class OXOModel implements Serializable {
 
     //private OXOPlayer[][] cells; // 存储网格, 数组实现
     private ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
-    private OXOPlayer[] players; // 存储玩家(标准2个)
+
+    //private OXOPlayer[] players; // 存储玩家(标准2个)
+    private ArrayList<OXOPlayer> players; // 存储玩家(标准2个), 用集合实现, 可以动态增删
+
     private int currentPlayerNumber; // 当前玩家
     private OXOPlayer winner; // 设置赢家, 会自动在屏幕上显示赢家(在GUI相关处已写好)
     private boolean gameDrawn; // 记录是否平局, 会自动在屏幕上显示平局(在GUI相关处已写好)
@@ -37,25 +40,31 @@ public class OXOModel implements Serializable {
 
     private boolean gameOver; // 用于表示游戏是否结束
 
+    private int minNumberOfPlayers = 2;
+    private int maxNumberOfPlayers = 10;
+
     /* =================== 构造函数: 构造棋盘和玩家 ================== */
     public OXOModel(int numberOfRows, int numberOfColumns, int winThresh) {
         this.numberOfRows = numberOfRows;
         this.numberOfColumns = numberOfColumns;
         this.winThreshold = winThresh;
+        // 创建棋盘集合并初始化棋盘大小(添加空对象)
         this.cells = new ArrayList<>();
-        // 初始化集合大小, 添加空对象
         for (int i = 0; i < numberOfRows * numberOfColumns; i++) {
             cells.add(null);
         }
-        this.players = new OXOPlayer[2];
+        // 创建玩家集合并添加两个玩家
+        this.players = new ArrayList<>();
+        players.add(new OXOPlayer('X'));
+        players.add(new OXOPlayer('O'));
         gameOver = false;
     }
 
     /* ======================== 添加玩家数量 ====================== */
     public void addPlayer(OXOPlayer player) {
-        for (int i = 0; i < players.length; i++) {
-            if (players[i] == null) {
-                players[i] = player;
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i) == null) {
+                players.set(i, player);
                 return;
             }
         }
@@ -124,12 +133,12 @@ public class OXOModel implements Serializable {
     /* =================== Get / Set 方法 ================== */
     // 获取玩家个数
     public int getNumberOfPlayers() {
-        return players.length;
+        return players.size();
     }
 
     // 根据玩家编号获取玩家
     public OXOPlayer getPlayerByNumber(int number) {
-        return players[number];
+        return players.get(number);
     }
 
     // 设置/获取赢家
@@ -180,4 +189,24 @@ public class OXOModel implements Serializable {
     public int getIndex(int rowNumber, int colNumber) {
         return rowNumber * numberOfColumns + colNumber;
     }
+
+    /* ======================= 增删玩家数量 ======================*/
+    public void addOnePlayer(OXOPlayer player) {
+        if (players.size() >= maxNumberOfPlayers) return;
+        players.add(player);
+    }
+    public void removeOnePlayer(OXOPlayer player) {
+        if (players.size() <= minNumberOfPlayers) return;
+        // 删除所有该玩家的棋子
+        for (int i = 0; i < numberOfRows; i++) {
+            for (int j = 0; j < numberOfColumns; j++) {
+                if (getCellOwner(i, j) == player) {
+                    setCellOwner(i, j, null);
+                }
+            }
+        }
+        // 删除该玩家
+        players.remove(player);
+    }
+
 }
