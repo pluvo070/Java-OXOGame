@@ -83,4 +83,27 @@ class ExampleControllerTests {
     // The next lins is a bit ugly, but it is the easiest way to test exceptions (soz)
     assertThrows(InvalidIdentifierLengthException.class, ()-> sendCommandToController("abc123"), failedTestComment);
   }
+
+  // ------------ 自定义脚本测试其他的异常类 ---------------
+  // 1. 检测超出范围
+  @Test
+  void testOutsideCellRangeException() throws OXOMoveException {
+    String failedTestComment = "Controller failed to throw an OutsideCellRangeException for command `d1`";
+    assertThrows(OutsideCellRangeException.class, ()-> sendCommandToController("d1"), failedTestComment);
+  }
+  // 2. 检测字符无效
+  @Test
+  void testInvalidIdentifierCharacterException() throws OXOMoveException {
+    String failedTestComment = "Controller failed to throw an InvalidIdentifierCharacterException for command `11`";
+    assertThrows(InvalidIdentifierCharacterException.class, ()-> sendCommandToController("11"), failedTestComment);
+  }
+  // 3. 检测格子已被占用
+  @Test
+  void testCellAlreadyTakenException() throws OXOMoveException {
+    sendCommandToController("a1"); // First player
+    sendCommandToController("b1"); // Second player
+    String failedTestComment = "Controller failed to throw a CellAlreadyTakenException for command `B1`";
+    assertThrows(CellAlreadyTakenException.class, ()-> sendCommandToController("B1"), failedTestComment);
+  }
+
 }
