@@ -2,9 +2,6 @@
 // 用于控制游戏逻辑,改变和操纵 OXOModel 中的游戏状态
 
 package edu.uob;
-import edu.uob.OXOModel;
-import edu.uob.OXOMoveException;
-import edu.uob.OXOPlayer;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,53 +15,90 @@ public class OXOController implements Serializable {
     }
 
     /* 处理用户的输入, 如 "a1" 则在棋盘左上角添加对应用户的图形(大小写不敏感)
-       先添加哪个玩家, 那个玩家就先开始游戏
-       不在这里检查输入是否合法(下周在MoveException里做) */
+       先添加哪个玩家, 那个玩家就先开始游戏 */
     public void handleIncomingCommand(String command) throws OXOMoveException {
-        // 异常处理1: 检测传入字符串长度是否是两位
-        if(command.length() != 2){
-            throw new OXOMoveException.InvalidIdentifierLengthException(command.length());
-        }
-        if(gameModel.isGameOver()){return;} // 如果游戏结束,不再接受指令
+        validateCommandLength(command); // 异常处理1: 检测传入字符串长度是否是两位
+        if (gameModel.isGameOver()) { return; } // 如果游戏结束,不再接受指令
+        // 拆分字符串的两个字符
         char row = command.charAt(0);
         char col = command.charAt(1);
-        // 异常处理2: 检测传入字符串的两个字符值是否正常(第一个是字母, 第二个是数字)
-        if(!Character.isLetter(row)){ // 这是 Character 类的静态方法, 用于判断单个字符是否是字母
-            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.ROW, row);
-        } else if(!Character.isDigit(col)){ // 这是 Character 类的静态方法, 用于判断单个字符是否是数字
-            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.COLUMN, col);
+        validateCommandCharacters(row, col); // 异常处理2: 检测传入字符串的两个字符值是否正常(第一个是字母, 第二个是数字)
+        boolean flag = false; // 记录row是大写还是小写字母
+        if(Character.isUpperCase(row)){
+            flag = true; // 表示大写
         }
-        // 异常处理3: 检测两个字符是否在行列的范围内
-        int width = gameModel.getNumberOfRows();
-        int height = gameModel.getNumberOfColumns();
-        if(row < 'a'||row > width + 'a' - 1){
-            throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
-        } else if(col < '1'||col > height + '1' - 1){
-            throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.COLUMN, col);
+        validateCommandInRange(row, col, flag);// 异常处理3: 检测两个字符是否在行列的范围内
+        // 获取字符所表示的在棋盘上对应的字母和数字
+        int i;
+        if(flag){ //大写字母
+            i = row - 'A';
+        } else { // 小写字母
+            i = row - 'a';
         }
-        int i = row - 'a';
         int j = col - '1';
-        // 检测当前棋盘方格是否已经被占用
-        if(gameModel.getCellOwner(i, j) == null){
-            int currentPlayerNumber = gameModel.getCurrentPlayerNumber();
-            OXOPlayer currentPlayer = gameModel.getPlayerByNumber(currentPlayerNumber);
-            gameModel.setCellOwner(i, j, currentPlayer);
-            int playerArrLength = gameModel.getNumberOfPlayers();
-            gameModel.setCurrentPlayerNumber((currentPlayerNumber + 1) % playerArrLength);
-        }else{
-            // 异常处理3: 当前格子被占用
-            throw new OXOMoveException.CellAlreadyTakenException(i, j);
-        }
+        validateCellAvailability(i, j);// 异常处理4: 当前格子被占用
+        // 将当前玩家的符号添加到对应的格子
+        int currentPlayerNumber = gameModel.getCurrentPlayerNumber();
+        OXOPlayer currentPlayer = gameModel.getPlayerByNumber(currentPlayerNumber);
+        gameModel.setCellOwner(i, j, currentPlayer);
+        // 切换到下一个玩家
+        int playerArrLength = gameModel.getNumberOfPlayers();
+        gameModel.setCurrentPlayerNumber((currentPlayerNumber + 1) % playerArrLength);
         // 检查是否游戏胜利
         if (checkWin()) {
             gameModel.setGameOver(true);
         }
         // 检查游戏是否平局
-        if(checkBoardFilled() && !gameModel.isGameOver()){
+        if (checkBoardFilled() && !gameModel.isGameOver()) {
             gameModel.setGameDrawn(true); // 设置平局状态
             // 平局后让然可以扩大棋盘继续游戏, 因此不设置gameover=true
         }
     }
+
+    // 异常处理1: 检测传入字符串长度是否是两位
+    private void validateCommandLength(String command) throws OXOMoveException.InvalidIdentifierLengthException {
+        if (command.length() != 2) {
+            throw new OXOMoveException.InvalidIdentifierLengthException(command.length());
+        }
+    }
+
+    // 异常处理2: 检测传入字符串的两个字符值是否正常(第一个是字母, 第二个是数字)
+    private void validateCommandCharacters(char row, char col) throws OXOMoveException.InvalidIdentifierCharacterException {
+        if (!Character.isLetter(row)) { // 这是 Character 类的静态方法, 用于判断单个字符是否是字母
+            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.ROW, row);
+        }
+        if (!Character.isDigit(col)) {
+            throw new OXOMoveException.InvalidIdentifierCharacterException(OXOMoveException.RowOrColumn.COLUMN, col);
+        }
+    }
+
+    // 异常处理3: 检测两个字符是否在行列的范围内
+    private void validateCommandInRange(char row, char col, boolean flag) throws OXOMoveException.OutsideCellRangeException {
+        int width = gameModel.getNumberOfRows();
+        int height = gameModel.getNumberOfColumns();
+
+        if(flag){ //大写字母
+            if (row < 'A' || row > width + 'A' - 1) {
+                throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
+            }
+        }
+        else{ // 小写字母
+            if (row < 'a' || row > width + 'a' - 1) {
+                throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
+            }
+        }
+        if (col < '1' || col > height + '1' - 1) {
+            throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.COLUMN, col);
+        }
+    }
+
+    // 异常处理4: 检查指定格子是否已被占用
+    private void validateCellAvailability(int i, int j) throws OXOMoveException.CellAlreadyTakenException {
+        if (gameModel.getCellOwner(i, j) != null) {
+            throw new OXOMoveException.CellAlreadyTakenException(i, j);
+        }
+    }
+
 
     // (根据用户的鼠标点击)增删行列
     public void addRow() {
