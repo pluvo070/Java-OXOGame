@@ -21,10 +21,10 @@ public class OXOModel implements Serializable {
     /* ====================== 成员变量 ===================== */
 
     //private OXOPlayer[][] cells; // 存储网格, 数组实现
-    private ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
+    private final ArrayList<OXOPlayer> cells;// 存储网格, 集合实现
 
     //private OXOPlayer[] players; // 存储玩家(标准2个)
-    private ArrayList<OXOPlayer> players; // 存储玩家(标准2个), 用集合实现, 可以动态增删
+    private final ArrayList<OXOPlayer> players; // 存储玩家(标准2个), 用集合实现, 可以动态增删
 
     private int currentPlayerNumber; // 当前玩家
     private OXOPlayer winner; // 设置赢家, 会自动在屏幕上显示赢家(在GUI相关处已写好)
@@ -33,15 +33,15 @@ public class OXOModel implements Serializable {
 
     private int numberOfRows;
     private int numberOfColumns;
-    private int maxNumberOfRows = 9;
-    private int maxNumberOfColumns = 9;
-    private int minNumberOfRows = 3;
-    private int minNumberOfColumns = 3;
+    private static final int maxNumberOfRows = 9;
+    private static final int maxNumberOfColumns = 9;
+    private static final int minNumberOfRows = 3;
+    private static final int minNumberOfColumns = 3;
 
     private boolean gameOver; // 用于表示游戏是否结束
 
-    private int minNumberOfPlayers = 2;
-    private int maxNumberOfPlayers = 10;
+    private static final int minNumberOfPlayers = 2;
+    private static final int maxNumberOfPlayers = 10;
 
     /* =================== 构造函数: 构造棋盘和玩家 ================== */
     public OXOModel(int numberOfRows, int numberOfColumns, int winThresh) {

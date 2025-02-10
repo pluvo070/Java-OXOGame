@@ -5,14 +5,15 @@ package edu.uob;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
-/*import edu.uob.OXOController;*/
-/*import edu.uob.OXOModel;*/
+//import edu.uob.OXOController;
+//import edu.uob.OXOModel;
 import edu.uob.OXOMoveException.*;
 import org.junit.jupiter.api.BeforeEach;
-/*import org.junit.jupiter.api.Test;*/
+//import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 class ExampleControllerTests {
@@ -34,7 +35,7 @@ class ExampleControllerTests {
   // This next method is a utility function that can be used by any of the test methods to _safely_ send a command to the controller
   void sendCommandToController(String command) {
       // 尝试将命令发送到控制器，如果处理时间过长则超时
-      // Try to send a command to the server - call will timeout if it takes too long (in case the server enters an infinite loop)
+      // Try to send a command to the server - call timeout if it takes too long (in case the server enters an infinite loop)
       // Note: this is ugly code and includes syntax that you haven't encountered yet
       String timeoutComment = "Controller took too long to respond (probably stuck in an infinite loop)";
       assertTimeoutPreemptively(Duration.ofMillis(1000), ()-> controller.handleIncomingCommand(command), timeoutComment);
@@ -82,7 +83,7 @@ class ExampleControllerTests {
   void testInvalidIdentifierException() /*throws OXOMoveException*/ {
     // Check that the controller throws a suitable exception when it gets an invalid command
     String failedTestComment = "Controller failed to throw an InvalidIdentifierLengthException for command `abc123`";
-    // The next lins is a bit ugly, but it is the easiest way to test exceptions (soz)
+    // The next line is a bit ugly, but it is the easiest way to test exceptions (soz)
     assertThrows(InvalidIdentifierLengthException.class, ()-> sendCommandToController("abc123"), failedTestComment);
   }
 
@@ -177,7 +178,7 @@ class ExampleControllerTests {
     controller.removePlayer(playerA);
     // 清除A的全部棋子
     String failedTestComment2 = "Failed to remove Player A";
-    assertEquals(null, model.getCellOwner(2, 0), failedTestComment2);
+    assertNull(model.getCellOwner(2, 0), failedTestComment2);
     // 玩家个数-1
     assertEquals(3, model.getNumberOfPlayers(), failedTestComment2);
   }
