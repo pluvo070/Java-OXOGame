@@ -24,10 +24,7 @@ public class OXOController implements Serializable {
         char row = command.charAt(0);
         char col = command.charAt(1);
         validateCommandCharacters(row, col); // 异常处理2: 检测传入字符串的两个字符值是否正常(第一个是字母, 第二个是数字)
-        boolean flag = false; // 记录row是大写还是小写字母
-        if(Character.isUpperCase(row)){
-            flag = true; // 表示大写
-        }
+        boolean flag = Character.isUpperCase(row); // 用于存储是大写还是小写字母. 是大写字母则为true
         validateCommandInRange(row, col, flag);// 异常处理3: 检测两个字符是否在行列的范围内
         // 获取字符所表示的在棋盘上对应的字母和数字
         int i;
@@ -226,7 +223,6 @@ public class OXOController implements Serializable {
     // 胜利检测的辅助函数
     // 递归调用: 其中i代表行方向的增量, j代表列方向的增量
     private boolean checkLine(int row, int col, int count, int winShold, OXOPlayer playerInThisBox, int i, int j) {
-        int index = gameModel.getIndex(row, col);
         // 递归结束条件
         if (row < 0 || row >= gameModel.getNumberOfRows() || col < 0 || col >= gameModel.getNumberOfColumns()) {
             return count >= winShold;
