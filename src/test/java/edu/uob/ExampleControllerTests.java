@@ -111,7 +111,7 @@ class ExampleControllerTests {
 
   /* ----- 测试增删获胜阈值 ----- */
   @Test
-  void testChangeWinThreshold() /*throws OXOMoveException*/ {
+  void testChangeWinThreshold() {
     controller.addRow();
     controller.addColumn();
     String failedTestComment1 = "Not expected WinThreshold";
@@ -147,6 +147,39 @@ class ExampleControllerTests {
     controller.reset(); // 重置游戏后获胜阈值不变
     String failedTestComment3 = "Something wrong in reset";
     assertEquals(4, model.getWinThreshold(), failedTestComment3);
+  }
+
+  /* ----- 测试更改玩家数量 ----- */
+  @Test
+  void testChangeNumOfPlayer() {
+    controller.addPlayer(new OXOPlayer('A'));
+    controller.addPlayer(new OXOPlayer('B'));
+    controller.addRow();
+    controller.addColumn();
+    OXOPlayer playerX = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("a1"); // X
+    OXOPlayer playerO = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("b1"); // O
+    OXOPlayer playerA = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("c1"); // A
+    OXOPlayer playerB = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("d1"); // B
+    String failedTestComment = "Not expected character. Failed to add Players.";
+    assertEquals(playerX, model.getCellOwner(0, 0), failedTestComment);
+    assertEquals(playerO, model.getCellOwner(1, 0), failedTestComment);
+    assertEquals(playerA, model.getCellOwner(2, 0), failedTestComment);
+    assertEquals(playerB, model.getCellOwner(3, 0), failedTestComment);
+    /*    1  2  3  4
+     * a  X
+     * b  O
+     * c  A
+     * d  B        */
+    controller.removePlayer(playerA);
+    // 清除A的全部棋子
+    String failedTestComment2 = "Failed to remove Player A";
+    assertEquals(null, model.getCellOwner(2, 0), failedTestComment2);
+    // 玩家个数-1
+    assertEquals(3, model.getNumberOfPlayers(), failedTestComment2);
   }
 
 }
