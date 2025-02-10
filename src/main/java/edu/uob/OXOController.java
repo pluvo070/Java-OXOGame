@@ -18,7 +18,7 @@ public class OXOController implements Serializable {
        先添加哪个玩家, 那个玩家就先开始游戏 */
     public void handleIncomingCommand(String command) throws OXOMoveException {
         validateCommandLength(command); // 异常处理1: 检测传入字符串长度是否是两位
-        if (gameModel.isGameOver()) { return; } // 如果游戏结束,不再接受指令
+        if (gameModel.isGameOver()) return;  // 如果游戏结束,不再接受指令
         // 拆分字符串的两个字符
         char row = command.charAt(0);
         char col = command.charAt(1);
@@ -117,11 +117,29 @@ public class OXOController implements Serializable {
         gameModel.removeColumn();
     }
 
-    // 增删胜利条件
-    public void increaseWinThreshold() {}
-    public void decreaseWinThreshold() {}
+    // 增减获胜阈值(连续几个棋子可以获胜)
+    /* 游戏开始前可以增减, 游戏开始后可以增但不可以减, 有人获胜后不可以增减 */
+    public void increaseWinThreshold() {
+        if (gameModel.isGameOver()) return; // 有人获胜后不可以改变获胜阈值
+        int currentThreshold = gameModel.getWinThreshold(); // 获得现有的阈值
+        int maxThreshold = Math.min(gameModel.getNumberOfRows(), gameModel.getNumberOfColumns()); // 获得最大允许的阈值
+        if (currentThreshold < maxThreshold) { // 如果没到最大值, 则可以增加
+            gameModel.setWinThreshold(currentThreshold + 1);
+        }
+    }
+    public void decreaseWinThreshold() {
+        if (gameModel.isGameOver()) return; // 有人获胜后不可以改变获胜阈值
+        // 棋盘上有棋子时不可以减少阈值
+        if (checkGameStarted()) return;
+        // 改变阈值
+        int currentThreshold = gameModel.getWinThreshold(); // 获得现有的阈值
+        int minThreshold = 3; // 最小阈值是3
+        if (currentThreshold > minThreshold) { // 如果没到最小值, 则可以减少
+            gameModel.setWinThreshold(currentThreshold - 1);
+        }
+    }
 
-    // (按下ESC) 重置游戏, 让Model棋盘恢复为初始状态, 但是棋盘大小不变
+    // (按下ESC) 重置游戏, 让Model棋盘恢复为初始状态, 但是棋盘大小不变, 获胜阈值不变
     public void reset() {
         // 1. 清空棋盘: 将格子设为空
         for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
@@ -211,7 +229,7 @@ public class OXOController implements Serializable {
         return checkLine(row + i, col + j, count, winShold, playerInThisBox, i, j);
     }
 
-    // 平局检测的辅助函数: 检查是否棋盘已经填满
+    // 平局检测的辅助函数: 检查是否棋盘已经填满, 填满则返回true
     private boolean checkBoardFilled() {
         int row = gameModel.getNumberOfRows();
         int col = gameModel.getNumberOfColumns();
@@ -223,6 +241,20 @@ public class OXOController implements Serializable {
             }
         }
         return true;
+    }
+
+    // 减少获胜阈值的辅助函数: 检查是否棋盘有棋子, 有则返回true
+    private boolean checkGameStarted() {
+        int row = gameModel.getNumberOfRows();
+        int col = gameModel.getNumberOfColumns();
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                if (gameModel.getCellOwner(i, j) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 

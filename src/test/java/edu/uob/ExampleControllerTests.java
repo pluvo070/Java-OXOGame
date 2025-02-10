@@ -86,7 +86,8 @@ class ExampleControllerTests {
     assertThrows(InvalidIdentifierLengthException.class, ()-> sendCommandToController("abc123"), failedTestComment);
   }
 
-  // ------------ 自定义脚本测试其他的异常类 ---------------
+  /* ====================== 自定义脚本 ====================== */
+  /* ----- 测试异常 -----*/
   // 1. 检测超出范围
   @Test
   void testOutsideCellRangeException() /*throws OXOMoveException*/ {
@@ -106,6 +107,46 @@ class ExampleControllerTests {
     sendCommandToController("b1"); // Second player
     String failedTestComment = "Controller failed to throw a CellAlreadyTakenException for command `B1`";
     assertThrows(CellAlreadyTakenException.class, ()-> sendCommandToController("B1"), failedTestComment);
+  }
+
+  /* ----- 测试增删获胜阈值 ----- */
+  @Test
+  void testChangeWinThreshold() /*throws OXOMoveException*/ {
+    controller.addRow();
+    controller.addColumn();
+    String failedTestComment1 = "Not expected WinThreshold";
+    controller.increaseWinThreshold(); // ->4
+    assertEquals(4, model.getWinThreshold(), failedTestComment1);
+    controller.decreaseWinThreshold(); // ->3
+    assertEquals(3, model.getWinThreshold(), failedTestComment1);
+    //OXOPlayer firstMovingPlayer = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("a1"); // First player
+    OXOPlayer secondMovingPlayer = model.getPlayerByNumber(model.getCurrentPlayerNumber());
+    sendCommandToController("a2"); // Second player
+    sendCommandToController("b1"); // First player
+    sendCommandToController("b2"); // Second player
+    controller.increaseWinThreshold(); // 游戏开始后可以增加->4
+    assertEquals(4, model.getWinThreshold(), failedTestComment1);
+    controller.decreaseWinThreshold(); // 游戏开始后不能减少->4
+    assertEquals(4, model.getWinThreshold(), failedTestComment1);
+    sendCommandToController("c1"); // First player
+    sendCommandToController("c2"); // Second player
+    sendCommandToController("a3"); // First player
+    sendCommandToController("d2"); // Second player
+    /*    1  2  3  4
+     * a  x  o  x
+     * b  x  o
+     * c  x  o
+     * d     o      */
+    String failedTestComment2 = "O is not the winner";
+    assertEquals(secondMovingPlayer, model.getWinner(), failedTestComment2); // 检测获胜者
+    controller.increaseWinThreshold(); // 游戏结束后不可以增加->4
+    assertEquals(4, model.getWinThreshold(), failedTestComment1);
+    controller.decreaseWinThreshold(); // 游戏开始后不可以减少->4
+    assertEquals(4, model.getWinThreshold(), failedTestComment1);
+    controller.reset(); // 重置游戏后获胜阈值不变
+    String failedTestComment3 = "Something wrong in reset";
+    assertEquals(4, model.getWinThreshold(), failedTestComment3);
   }
 
 }
