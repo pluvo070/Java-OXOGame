@@ -75,6 +75,7 @@ public class OXOController implements Serializable {
         int width = gameModel.getNumberOfRows();
         int height = gameModel.getNumberOfColumns();
 
+        // 检测第一个字符
         if(flag){ //大写字母
             if (row < 'A' || row > width + 'A' - 1) {
                 throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
@@ -85,6 +86,7 @@ public class OXOController implements Serializable {
                 throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.ROW, row);
             }
         }
+        // 检测第二个字符
         if (col < '1' || col > height + '1' - 1) {
             throw new OXOMoveException.OutsideCellRangeException(OXOMoveException.RowOrColumn.COLUMN, col);
         }
@@ -155,53 +157,14 @@ public class OXOController implements Serializable {
     // 检测是否有玩家获得胜利, 若有则设置Model中的win为当前玩家
     public boolean checkWin() {
         int winShold = gameModel.getWinThreshold();
-        // 遍历棋盘, 检查行
+        // 遍历棋盘, 检查四个方向
         for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
             for (int j = 0; j < gameModel.getNumberOfColumns(); j++) {
                 OXOPlayer playerInThisBox = gameModel.getCellOwner(i, j);
-                if (playerInThisBox == null) {
+                if (playerInThisBox == null) { // 当前格子无玩家, 则跳到下一个格子
                     continue;
                 }
-                if (checkLine(i, j, 0, winShold, playerInThisBox, 1, 0)) { // 给行一个步长
-                    gameModel.setWinner(playerInThisBox);
-                    return true;
-                }
-            }
-        }
-        // 遍历棋盘, 检查列
-        for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
-            for (int j = 0; j < gameModel.getNumberOfColumns(); j++) {
-                OXOPlayer playerInThisBox = gameModel.getCellOwner(i, j);
-                if (playerInThisBox == null) {
-                    continue;
-                }
-                if (checkLine(i, j, 0, winShold, playerInThisBox, 0, 1)) { // 给列一个步长
-                    gameModel.setWinner(playerInThisBox);
-                    return true;
-                }
-            }
-        }
-        // 遍历棋盘, 检查斜线(以右上角为例, i-1, j + 1)
-        for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
-            for (int j = 0; j < gameModel.getNumberOfColumns(); j++) {
-                OXOPlayer playerInThisBox = gameModel.getCellOwner(i, j);
-                if (playerInThisBox == null) {
-                    continue;
-                }
-                if (checkLine(i, j, 0, winShold, playerInThisBox, -1, 1)) { // 斜方向的一个步长
-                    gameModel.setWinner(playerInThisBox);
-                    return true;
-                }
-            }
-        }
-        // 遍历棋盘, 检查另一条斜线(以右下角为例, i+1, j+1)
-        for (int i = 0; i < gameModel.getNumberOfRows(); i++) {
-            for (int j = 0; j < gameModel.getNumberOfColumns(); j++) {
-                OXOPlayer playerInThisBox = gameModel.getCellOwner(i, j);
-                if (playerInThisBox == null) {
-                    continue;
-                }
-                if (checkLine(i, j, 0, winShold, playerInThisBox, 1, 1)) {
+                if (checkLine(i, j, winShold, playerInThisBox)){ // 当前格子有玩家, 则检查四个方向
                     gameModel.setWinner(playerInThisBox);
                     return true;
                 }
@@ -220,10 +183,49 @@ public class OXOController implements Serializable {
     }
 
     /* =============== 辅助函数 ==============*/
-    // 胜利检测的辅助函数
-    // 递归调用: 其中i代表行方向的增量, j代表列方向的增量
-    private boolean checkLine(int row, int col, int count, int winShold, OXOPlayer playerInThisBox, int i, int j) {
-        // 递归结束条件
+    // 胜利检测的辅助函数1: 当前格子有玩家, 检测四个方向
+    // !!! 定义四个方向, 封装方法, 避免复制黏贴 !!!
+    private boolean checkLine(int row, int col, int winThreshold, OXOPlayer player) {
+        // 定义方向: 二维数组, 存储四个方向的增量
+        int[][] directions = {
+                {0, 1},  // 水平：右
+                {1, 0},  // 垂直：下
+                {1, 1},  // 斜线：右下
+                {-1, 1}  // 斜线：右上
+        };
+        // 遍历四个方向
+        for (int[] dir : directions) { // 增强for循环, dir是一维数组(int[]类型)
+            if (checkDirection(row, col, dir[0], dir[1], player, winThreshold)) { // 检查单个方向是否满足条件
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // 胜利检测的辅助函数2: 检测单个方向是否满足条件, 其中rowDir/colDir是水平/垂直方向的增量
+    private boolean checkDirection(int startRow, int startCol, int rowDir, int colDir, OXOPlayer player, int winThreshold) {
+        int count = 1; // 当前格子本身算作一个
+        int row = startRow;
+        int col = startCol;
+        // 向正向方向检查, 直到遇到边界或遇到不同玩家, 或者达到阈值
+        while ( // !!! 注意不要让一行过于长 !!!
+                isValidCell(row + rowDir, col + colDir) &&
+                gameModel.getCellOwner(row + rowDir, col + colDir) == player
+        ) {
+            count++;
+            row += rowDir;
+            col += colDir;
+        }
+        return count >= winThreshold;
+    }
+
+    private boolean isValidCell(int row, int col) {
+        boolean f1 = row >= 0 && row < gameModel.getNumberOfRows();
+        boolean f2 = col >= 0 && col < gameModel.getNumberOfColumns();
+        return f1 && f2;
+    }
+
+    /*// 递归结束条件
         if (row < 0 || row >= gameModel.getNumberOfRows() || col < 0 || col >= gameModel.getNumberOfColumns()) {
             return count >= winShold;
         }
@@ -234,8 +236,7 @@ public class OXOController implements Serializable {
             return count >= winShold;
         }
         // 递归调用
-        return checkLine(row + i, col + j, count, winShold, playerInThisBox, i, j);
-    }
+        return checkLine(row + i, col + j, count, winShold, playerInThisBox, i, j);*/
 
     // 平局检测的辅助函数: 检查是否棋盘已经填满, 填满则返回true
     private boolean checkBoardFilled() {
